@@ -7,7 +7,6 @@ import cn.net.yunlou.unionpay.sdk.SecureUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
 import java.util.Map;
@@ -17,11 +16,10 @@ import java.util.Map;
  * 声明：以下代码只是为了方便接入方测试而提供的样例代码，商户可以根据自己需要，按照技术文档编写。该代码仅供参考，不提供编码，性能，规范性等方面的保障
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class GmAcp6Service {
 
-	// private final static Logger logger = Logger.getLogger(GmAcp6Service.class);
+	// private final static Logger log = Logger.getLogger(GmAcp6Service.class);
 
 	/**
 	 * 请求报文签名(使用配置文件中配置的私钥证书或者对称密钥签名)<br>
@@ -32,11 +30,11 @@ public class GmAcp6Service {
 	 */
 	public static Map<String, String> sign(Map<String, String> reqData,String encoding) {
 		return signByCertInfo(reqData,
-        		GmSDKConfig.getConfig().getSignCertPath(), 
-        		GmSDKConfig.getConfig().getSignCertPwd(), 
+        		GmSDKConfig.getConfig().getSignCertPath(),
+        		GmSDKConfig.getConfig().getSignCertPwd(),
         		encoding);
 	}
-	
+
 	/**
 	 * 多证书签名(通过传入私钥证书路径和密码签名）<br>
 	 * 功能：如果有多个商户号接入银联,每个商户号对应不同的证书可以使用此方法:传入私钥证书和密码(并且在acp_sdk.properties中 配置 acpsdk.singleMode=false)<br>
@@ -46,7 +44,7 @@ public class GmAcp6Service {
 	 * @param encoding 上送请求报文域encoding字段的值<br>
 	 * @return　签名后的map对象<br>
 	 */
-	public static Map<String, String> signByCertInfo(Map<String, String> reqData, String certPath, 
+	public static Map<String, String> signByCertInfo(Map<String, String> reqData, String certPath,
 			String certPwd, String encoding) {
 
         Map<String, String> data = SDKUtil.filterBlank(reqData);
@@ -54,12 +52,12 @@ public class GmAcp6Service {
         if (SDKUtil.isEmpty(encoding)) {
             encoding = SDKConstants.UTF_8_ENCODING;
         }
-        
+
         if (SDKUtil.isEmpty(certPath) || SDKUtil.isEmpty(certPwd)) {
             log.error("CertPath or CertPwd is empty");
             return data;
         }
-        
+
         try {
 			data.put(SDKConstants.param_certId, GmCertUtil.getCertIdByKeyStoreMap(certPath, certPwd));
 			data.put(SDKConstants.param_signature, GmSDKUtil.signSm2(data, certPath, certPwd, encoding));
@@ -81,7 +79,7 @@ public class GmAcp6Service {
         if (SDKUtil.isEmpty(encoding)) {
             encoding = SDKConstants.UTF_8_ENCODING;
         }
-        
+
         String certId = data.get(SDKConstants.param_certId);
         log.info("对返回报文串验签使用的验签公钥序列号：[" + certId + "]");
         PublicKey verifyKey = GmCertUtil.getValidatePublicKey(certId);
@@ -89,7 +87,7 @@ public class GmAcp6Service {
         	log.error("未找到此序列号证书。");
             return false;
         }
-        
+
         try {
 			boolean result = GmSDKUtil.verifySm2(data, verifyKey, encoding, certId);
 			log.info("验签" + (result ? "成功" : "失败") + "。");
@@ -122,7 +120,7 @@ public class GmAcp6Service {
 		byte[] pinblock = SecureUtil.pinblock(accNo, pin); //pinblock算法确认过和国际一致
 		return Base64.encodeBase64String(GmUtil.sm2Encrypt(pinblock, GmCertUtil.getPinEncryptCert().getPubKey()));
 	}
-	
+
 	/**
 	 * 敏感信息加密并做base64(卡号，手机号，cvn2,有效期）<br>
 	 * @param data 送 phoneNo,cvn2,有效期<br>
@@ -147,7 +145,7 @@ public class GmAcp6Service {
             return null;
         }
     }
-	
+
 	/**
 	 * 敏感信息解密，使用配置文件acp_sdk.properties解密<br>
 	 * @param base64EncryptedInfo 加密信息<br>
@@ -157,7 +155,7 @@ public class GmAcp6Service {
 	public static String decryptData(String base64EncryptedInfo, String encoding) {
         return GmAcpService.decryptData(base64EncryptedInfo, encoding);
     }
-	
+
 	/**
 	 * 敏感信息解密,通过传入的私钥解密<br>
 	 * @param base64EncryptedInfo 加密信息<br>
@@ -166,11 +164,11 @@ public class GmAcp6Service {
 	 * @param encoding 编码格式<br>
 	 * @return 解密后的明文<br>
 	 */
-	public static String decryptData(String base64EncryptedInfo, String certPath, 
+	public static String decryptData(String base64EncryptedInfo, String certPath,
 			String certPwd, String encoding) {
         return GmAcpService.decryptData(base64EncryptedInfo, certPath, certPwd, encoding);
 	}
-	
+
 	/**
 	 * 获取敏感信息加密证书的物理序列号<br>
 	 * @return 证书序列号
@@ -178,7 +176,7 @@ public class GmAcp6Service {
 	public static String getEncryptCertId(){
 		return GmCertUtil.getEncryptCert().getCertId();
 	}
-	
+
 	/**
 	 * 获取敏感信息加密证书的物理序列号<br>
 	 * @return 证书序列号
@@ -186,7 +184,7 @@ public class GmAcp6Service {
 	public static String getPinEncryptCertId(){
 		return GmCertUtil.getPinEncryptCert().getCertId();
 	}
-	
+
 	/**
 	 * 功能：后台交易提交请求报文并接收同步应答报文<br>
 	 * @param reqData 请求报文<br>
@@ -197,7 +195,7 @@ public class GmAcp6Service {
 	public static Map<String,String> post(Map<String, String> reqData, String reqUrl,String encoding) {
 		return Acp6Service.post(reqData, reqUrl, encoding);
 	}
-	
+
 	/**
 	 * 功能：后台交易提交请求报文并接收同步应答报文<br>
 	 * @param reqData 请求报文<br>

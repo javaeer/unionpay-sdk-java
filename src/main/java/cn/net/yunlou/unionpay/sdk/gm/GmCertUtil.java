@@ -1,6 +1,6 @@
 package cn.net.yunlou.unionpay.sdk.gm;
 
-import cn.net.yunlou.common.utils.PemUtils;
+import cn.net.yunlou.unionpay.utils.PemUtils;
 import cn.net.yunlou.unionpay.sdk.CertUtil;
 import cn.net.yunlou.unionpay.sdk.SDKUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ import static cn.net.yunlou.unionpay.sdk.SDKConstants.UNIONPAY_CNNAME;
 public class GmCertUtil{
 
     // private final static Logger logger = Logger.getLogger(GmCertUtil.class);
-	
+
 	static class Key {
 
 	    private String certId;
@@ -71,12 +71,12 @@ public class GmCertUtil{
     private static ConcurrentHashMap<String, X509Certificate> verifyCerts510 = new ConcurrentHashMap<String, X509Certificate>();
 	private static X509Certificate middleCert = null;
 	private static X509Certificate rootCert = null;
-	
+
 	static{
 		addProvider();
 		init();
 	}
-	
+
 	/**
 	 * 添加签名，验签，加密算法提供者
 	 */
@@ -90,7 +90,7 @@ public class GmCertUtil{
 			log.info("re-add BC provider");
 		}
 	}
-	
+
     /**
      * 如果需要改用其他properties文件，可以调这个，默认用Config类默认使用调文件。
      */
@@ -131,7 +131,7 @@ public class GmCertUtil{
         rootCert = PemUtils.loadX509FromPath(path);
         log.info("加载根证书==>" + path + (rootCert != null ?"成功":"失败"));
 	}
-	
+
 	private static void initVerifySignCerts(){
 		String dir = GmSDKConfig.getConfig().getValidateCertDir();
 		ConcurrentHashMap<String, Key> tmpVerifyCerts = new ConcurrentHashMap<String, Key>();
@@ -186,10 +186,10 @@ public class GmCertUtil{
 			verifyCertsSnMap = tmpVerifyCerts;
 		}
 	}
-	
+
 	/**
 	 * 证书文件过滤器
-	 * 
+	 *
 	 */
 	static class CerFilter implements FilenameFilter {
 		public boolean isCer(String name) {
@@ -203,7 +203,7 @@ public class GmCertUtil{
 			return isCer(name);
 		}
 	}
-	
+
 	private static Key getVerifySignKey(String certId){
 		if(certId == null)
 			throw new IllegalArgumentException("null argument");
@@ -218,7 +218,7 @@ public class GmCertUtil{
 	public static PublicKey getValidatePublicKey(String certId){
 		return getVerifySignKey(certId).getPubKey();
 	}
-	
+
 	private static void initEncryptCert(){
         String path = GmSDKConfig.getConfig().getEncryptCertPath();
         if(SDKUtil.isEmpty(path)){
@@ -228,7 +228,7 @@ public class GmCertUtil{
         encryptCert = readGmPubCert(path);
         log.info("加载加密证书==>" + path + (encryptCert != null ?"成功":"失败"));
 	}
-	
+
 	private static void initPinEncryptCert(){
         String path = GmSDKConfig.getConfig().getPinEncryptCertPath();
         if(SDKUtil.isEmpty(path)){
@@ -238,26 +238,26 @@ public class GmCertUtil{
         pinEncryptCert = readGmPubCert(path);
         log.info("加载6.0统一支付产品pin加密证书==>" + path + (pinEncryptCert != null ?"成功":"失败"));
 	}
-	
-	
+
+
 //	public static PublicKey getEncryptCertPublicKey(){
 //		return getEncryptKey(GmSDKConfig.getConfig().getEncryptCertPath()).getPubKey();
 //	}
-//	
+//
 //	public static String getEncryptCertId(){
 //		return getEncryptKey(GmSDKConfig.getConfig().getEncryptCertPath()).getCertId();
 //	}
-	
+
 	public static Key getEncryptCert(){
     	if(GmCertUtil.encryptCert == null) {
             initEncryptCert();
     	}
     	return GmCertUtil.encryptCert;
 	}
-	
+
 	/**
 	 * 获取敏感信息加密证书PublicKey
-	 * 
+	 *
 	 * @return 敏感信息加密证书公钥
 	 */
 	public static Key getPinEncryptCert() {
@@ -268,7 +268,7 @@ public class GmCertUtil{
 	}
 
 	/**
-	 * 
+	 *
 	 * @param certFilePath
 	 * @param certPwd
 	 */
@@ -300,19 +300,19 @@ public class GmCertUtil{
         }
         return getSignKeyByPath(path, pwd);
     }
-    
+
     public static String getSignCertId() {
 		return getSignKey().getCertId();
 	}
-    
+
     public static PrivateKey getSignCertPrivateKey() {
 		return getSignKey().getPriKey();
 	}
-    
+
     public static String getCertIdByKeyStoreMap(String path, String pwd) {
 		return getSignKeyByPath(path, pwd).getCertId();
 	}
-    
+
     public static PrivateKey getSignCertPrivateKey(String path, String pwd) {
 		return getSignKeyByPath(path, pwd).getPriKey();
 	}
@@ -340,7 +340,7 @@ public class GmCertUtil{
                 }
         }
     }
-	
+
     private static Key readGmPubCert(String path) {
     	FileInputStream in = null;
     	try {
@@ -406,7 +406,7 @@ public class GmCertUtil{
      * @return
      */
     private static boolean verifyCertificate(X509Certificate cert) {
-		
+
 		if ( null == cert) {
 			log.error("cert must Not null");
 			return false;
@@ -420,7 +420,7 @@ public class GmCertUtil{
 			log.error("verifyCertificate fail", e);
 			return false;
 		}
-		
+
 		if(GmSDKConfig.getConfig().isIfValidateCNName()){
 			// 验证公钥是否属于银联
 			if(!UNIONPAY_CNNAME.equals(CertUtil.getIdentitiesFromCertficate(cert))) {
@@ -429,18 +429,18 @@ public class GmCertUtil{
 			}
 		} else {
 			// 验证公钥是否属于银联
-			if(!UNIONPAY_CNNAME.equals(CertUtil.getIdentitiesFromCertficate(cert)) 
+			if(!UNIONPAY_CNNAME.equals(CertUtil.getIdentitiesFromCertficate(cert))
 					&& !"ZunionpayTest".equals(CertUtil.getIdentitiesFromCertficate(cert))) {
 				log.error("cer owner is not CUP:" + CertUtil.getIdentitiesFromCertficate(cert));
 				return false;
 			}
 		}
-		return true;		
+		return true;
 	}
 
     /**
 	 * 重置敏感信息加密证书公钥
-	 * 
+	 *
 	 * @param strCert 证书字符串
 	 * @return 重置结果（1：成功，0：无更新，-1：失败）
 	 */
@@ -494,7 +494,7 @@ public class GmCertUtil{
 
 	/**
 	 * 重置pin敏感信息加密证书公钥
-	 * 
+	 *
 	 * @param strCert 证书字符串
 	 * @return 重置结果（1：成功，0：无更新，-1：失败）
 	 */
@@ -545,5 +545,5 @@ public class GmCertUtil{
 			return -1;
 		}
 	}
-	
+
 }

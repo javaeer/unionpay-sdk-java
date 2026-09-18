@@ -1,0 +1,48 @@
+【哪个sdk新就用哪个哦】【不完全向下兼容注意】
+
+2020/9/29：
+增加应答只需要关心200的post。
+
+2020/6/23：
+规范大改了，请参考最新规范进行修改。
+1. 应答新增returnMsg，调整了应答码和交易状态相关字段。具体的值见规范。
+目前使用的：
+1）returnCode：代表此次交易请求的业务结果，查询交易表示查询操作的业务结果，具体交易结果，以交易应答码、交易状态码为准。
+2）respCode：交易结果应答码。
+3）xxxStatus：各类交易的状态
+① transferStatus-转账状态，仅转账交易出现
+② billStatus-账单状态，仅缴费交易用
+③ entryStatus-入账状态，入账状态查询用
+④ transStatus-消费/预授权交易的状态，仅消费和预授权查询和通知用
+已删除的：resultCode、transCode、transMsg。
+2. 应答新增merTransIndex，查询接口会原样应答，但目前并没有往发卡或者二维码的付款方送，大概没别的作用。
+3. 应答新增preAuthId，没什么用，如果需要收单手工帮你处理预授权进行撤销或完成时可用提供他们，可方便他们处理。卡号+商户号+preAuthId在预授权超时或结束（完成或撤销）前是唯一的。
+4. 新增respCode、transStatus取值TRANS_PRE_AUTH_COMPLETED，表示已被预授权完成。
+5. 查询应答新增transStatus字段表示被查询的原交易的状态。
+6. respCode和respMsg下沉到bizContent中.
+7. traceNo和traceTime替换成清算主键settleKey，settleKey在收单和发卡的清算文件内是唯一的，可用于和收单对账，以及找银联和发卡查交易。
+8. merCertId、cupCertId改为certId。
+9. accessId：填写商户号。
+10. accessType填写0。
+11. 订单号、交易时间、商户代码从公共参数下沉到bizContent中。
+12. 增加入账状态状态查询接口。
+13. 转账交易termId从必填M改成可选O。
+14. 两方转账也返回transferStatus。
+
+2020/4/29：
+6.0接口地址修正最终版，注意获取地址方式改getTransUrl，配置文件增加acpsdk.transUrl: https://gateway.test.95516.com/api/trans.do。
+
+2020/4/4：
+不完全向下兼容，注意对应修改，修改后的样例可参考assets/sdk测试类.
+修改后：
+全渠道5.0、5.1用AcpService。
+全渠道6.0用Acp6Service。
+二维码用QrcService。。
+LogUtil删除，请改成直接调log4j或slf4j打印。
+原二维码DemoBase中：
+DemoBase.getAddnCond->QrcService.getKVBase64Field
+DemoBase.formInfoBase64->QrcService.getKVBase64Field
+DemoBase.getPayeeInfo->QrcService.getKVBase64Field
+DemoBase.getPayeeInfoWithEncrpyt->QrcService.getKVEncBase64Field
+DemoBase.getPayerInfo->QrcService.getKVBase64Field
+DemoBase.getPayerInfoWithEncrpyt->QrcService.getKVEncBase64Field
